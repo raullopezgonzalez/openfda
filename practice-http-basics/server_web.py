@@ -8,7 +8,6 @@ MAX_OPEN_REQUESTS = 5
 
 def process_client(clientsocket):
     print(clientsocket)
-    print("aqui")
     message = clientsocket.recv(1024)
     print(message)
     message = message.decode()
@@ -16,30 +15,23 @@ def process_client(clientsocket):
     message = message[0]
     print(message)
     if message == "GET / HTTP/1.1\r"	:
-        print("llega¡¡")
         with open("file.html","r") as f:
             file = f.read()
         web_contents = file
-        print("1")
         web_headers = "HTTP/1.1 200"
         web_headers += "\n" + "Content-Type: text/html"
         web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
         clientsocket.send(str.encode(web_headers + "\n\n" + web_contents))
-        print("2")
         clientsocket.close()
     elif message == "GET /new HTTP/1.1\r" :
         with open("file_2.html","r") as f:
             file = f.read()
         web_contents = file
-        print("3")
         web_headers = "HTTP/1.1 200"
         web_headers += "\n" + "Content-Type: text/html"
         web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
         clientsocket.send(str.encode(web_headers + "\n\n" + web_contents))
-        print("4")
         clientsocket.close()
-    else:
-        print("heeeeewyyyyeyeyey")
 
 
 # create an INET, STREAMing socket
