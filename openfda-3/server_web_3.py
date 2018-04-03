@@ -3,7 +3,7 @@
 
 import socket
 
-PORT = 8092
+PORT = 8093
 MAX_OPEN_REQUESTS = 5
 
 def process_client(clientsocket):
@@ -23,11 +23,35 @@ def process_client(clientsocket):
     i = 0
     while i < 10:
         if 'active_ingredient' in repos['results'][i]:
-            print("The drug is", repos['results'][i]['active_ingredient'])
             i += 1
+
+            with open("Drugs.html","w") as f:
+                message = """<html>
+                <ol>
+                    <li>The drug is repos['results'][i]['active_ingredient']</li>
+                </ol>
+                </html>"""
+                f.write(message)
+                f.close()
         else:
-            print("This index has no active ingredient")
             i += 1
+            with open("Drugs.html","w") as f:
+                message = """<html>
+                <ol>
+                    <li>This index has no active ingredient</li>
+                </ol>
+                </html>"""
+                f.write(message)
+                f.close()
+
+    with open("Drugs.html","r") as f:
+        file = f.read()
+    web_contents = file
+    web_headers = "HTTP/1.1 200"
+    web_headers += "\n" + "Content-Type: text/html"
+    web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
+    clientsocket.send(str.encode(web_headers + "\n\n" + web_contents))
+    clientsocket.close()
 
 
 # create an INET, STREAMing socket
