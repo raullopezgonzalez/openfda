@@ -3,14 +3,36 @@
 
 import socket
 
-PORT = 8092
+PORT = 8093
 MAX_OPEN_REQUESTS = 5
 
 def process_client(clientsocket):
-    print(clientsocket)
-    print(clientsocket.recv(1024))
-    with open("file.html","r") as f:
-        file = f.read()
+    import http.client
+    import json
+
+    headers = {'User-Agent': 'http-client'}
+
+    conn = http.client.HTTPSConnection("api.fda.gov")
+    conn.request("GET", "/drug/label.json?limit=10", None, headers)
+    r1 = conn.getresponse()
+    print(r1.status, r1.reason)
+    repos_raw = r1.read().decode("utf-8")
+    conn.close()
+
+    repos = json.loads(repos_raw)
+
+    i = 0
+    intro = <ol>
+    end = </ol>
+
+    while i < 10:
+        if 'active_ingredient' in repos['results'][i]:
+            i += 1
+            <li>The drug is repos['results'][i]['active_ingredient']</li>
+        else:
+            i += 1
+            <li>This index has no active ingredient</li>
+
     web_contents = file
     web_headers = "HTTP/1.1 200"
     web_headers += "\n" + "Content-Type: text/html"
@@ -18,13 +40,12 @@ def process_client(clientsocket):
     clientsocket.send(str.encode(web_headers + "\n\n" + web_contents))
     clientsocket.close()
 
-
 # create an INET, STREAMing socket
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # bind the socket to a public host, and a well-known port
 hostname = socket.gethostname()
 # Let's use better the local interface name
-hostname = "10.10.104.169"
+hostname = "localhost"
 try:
     serversocket.bind((hostname, PORT))
     # become a server socket
@@ -39,6 +60,5 @@ try:
         # in this case, we'll pretend this is a non threaded server
         process_client(clientsocket)
 
-except socket.error as ex:         
+except socket.error:
     print("Problemas using port %i. Do you have permission?" % PORT)
-    print(ex) 
