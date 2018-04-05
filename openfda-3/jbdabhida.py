@@ -21,17 +21,28 @@ def process_client(clientsocket):
 
     repos = json.loads(repos_raw)
 
+    list = []
     i = 0
-    intro = <ol>
-    end = </ol>
+    intro = "<ol>" + "\n"
+    end = "<\ol>"
 
     while i < 10:
         if 'active_ingredient' in repos['results'][i]:
             i += 1
-            <li>The drug is repos['results'][i]['active_ingredient']</li>
+            list.append(repos['results'][i]['active_ingredient'][0])
         else:
             i += 1
-            <li>This index has no active ingredient</li>
+            list.append("This index has no drug")
+
+    with open("drug.html","w") as f:
+        f.write(intro)
+        for element in list:
+            element_1 = "<\t>" + "<li>" + element + "<\li>"
+            f.write(element_1)
+        f.write(end)
+
+    with open("drug.html","r") as f:
+        file = f.read()
 
     web_contents = file
     web_headers = "HTTP/1.1 200"
