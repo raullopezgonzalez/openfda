@@ -1,15 +1,14 @@
 # A basic web server using sockets
 
-import http.server
-import socketserver
+
 import socket
-import json
 
 PORT = 8093
 MAX_OPEN_REQUESTS = 5
-IP = "localhost"
+
 def process_client(clientsocket):
     import http.client
+    import json
 
     headers = {'User-Agent': 'http-client'}
 
@@ -25,12 +24,12 @@ def process_client(clientsocket):
     list = []
     i = 0
     intro = "<ol>" + "\n"
-    end = "</ol>" + "\n"
+    end = "<\ol>"
 
     while i < 10:
         if 'active_ingredient' in repos['results'][i]:
-            list.append(repos['results'][i]['active_ingredient'][0])
             i += 1
+            list.append(repos['results'][i]['active_ingredient'][0])
         else:
             i += 1
             list.append("This index has no drug")
@@ -38,38 +37,19 @@ def process_client(clientsocket):
     with open("drug.html","w") as f:
         f.write(intro)
         for element in list:
-            element_1 = "<li>" + element + "</li>" + "<\n>"
+            element_1 = "<\t>" + "<li>" + element + "<\li>"
             f.write(element_1)
         f.write(end)
 
+    with open("drug.html","r") as f:
+        file = f.read()
 
-
-class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-
-        with open("drug.html", "r") as f:
-            message = f.read()
-        self.wfile.write(bytes(message, "utf8"))
-        print("File served!")
-        return
-
-Handler = testHTTPRequestHandler
-httpd = socketserver.TCPServer((IP, PORT), Handler)
-print("serving at port", PORT)
-try:
-    httpd.serve_forever()
-except KeyboardInterrupt:
-        pass
-
-httpd.server_close()
-print("")
-print("Server stopped!")
-
-
-
+    web_contents = file
+    web_headers = "HTTP/1.1 200"
+    web_headers += "\n" + "Content-Type: text/html"
+    web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
+    clientsocket.send(str.encode(web_headers + "\n\n" + web_contents))
+    clientsocket.close()
 
 # create an INET, STREAMing socket
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
