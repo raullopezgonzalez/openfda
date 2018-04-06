@@ -3,7 +3,7 @@
 
 import socket
 
-PORT = 8093
+PORT = 8014
 MAX_OPEN_REQUESTS = 5
 
 def process_client(clientsocket):
@@ -18,26 +18,28 @@ def process_client(clientsocket):
     print(r1.status, r1.reason)
     repos_raw = r1.read().decode("utf-8")
     conn.close()
+    print("1")
 
     repos = json.loads(repos_raw)
 
     list = []
     i = 0
-    intro = "<ol>" + "\n"
-    end = "<\ol>"
+    intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "<body>" + "\n" "<ol>" + "\n"
+    end = "</ol>" + "\n" + "</body>" + "\n" + "</html>"
+
 
     while i < 10:
         if 'active_ingredient' in repos['results'][i]:
-            i += 1
             list.append(repos['results'][i]['active_ingredient'][0])
-        else:
             i += 1
+        else:
             list.append("This index has no drug")
+            i += 1
 
     with open("drug.html","w") as f:
         f.write(intro)
         for element in list:
-            element_1 = "<\t>" + "<li>" + element + "<\li>"
+            element_1 ="<li>" + element + "<\li>" + "\n"
             f.write(element_1)
         f.write(end)
 
