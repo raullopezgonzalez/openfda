@@ -198,7 +198,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
             elif "redirect" in self.path:
                 self.send_response(302)
-                self.send_header('Redirect', '/')
+                self.send_header('Redirect', 'http://redirect/')
                 self.end_headers()
 
 
