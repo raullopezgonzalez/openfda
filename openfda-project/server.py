@@ -49,7 +49,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             with open("drug.html", "w") as f:
                 f.write(intro)
                 for element in list:
-                    element_1 = "<li>" + element + "<\li>" + "\n"
+                    element_1 = "<li>" + element + "</li>" + "\n"
                     f.write(element_1)
                 f.write(end)
             with open("drug.html", "r") as f:
@@ -62,7 +62,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             headers = {'User-Agent': 'http-client'}
             conn = http.client.HTTPSConnection("api.fda.gov")
             companies = self.path.split("?")[1]
-            url = "/drug/label.json?search=brand_name:" + companies
+            url = "/drug/label.json?search=manufacturer_name:" + companies
             conn.request("GET", url, None, headers)
             r1 = conn.getresponse()
             company_raw = r1.read().decode("utf-8")
@@ -72,13 +72,13 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
             for i in range(len(companies_1['results'])):
                 if 'active_ingredient' in companies_1['results'][i]:
-                    list.append(companies_1['results'][i]['active_ingredient'][0])
+                    list.append(companies_1['results'][i]['openfda']["manufacturer_name"][0])
                 else:
-                    list.append("This index has no drug")
+                    list.append("This index has no manufacturer name")
             with open("drug.html", "w") as f:
                 f.write(intro)
                 for element in list:
-                    element_1 = "<li>" + element + "<\li>" + "\n"
+                    element_1 = "<li>" + element + "</li>" + "\n"
                     f.write(element_1)
                 f.write(end)
             with open("drug.html", "r") as f:
@@ -92,7 +92,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             conn = http.client.HTTPSConnection("api.fda.gov")
             drug = self.path.split("?")[1]
             print(drug)
-            url = "/drug/label.json?search=active_ingredient:" + drug
+            url = "/drug/label.json?" + drug
             conn.request("GET", url, None, headers)
             r1 = conn.getresponse()
             drugs_raw = r1.read().decode("utf-8")
@@ -101,7 +101,53 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             drugs_1 = drug
 
             for i in range(len(drugs_1['results'])):
-                list.append(drugs_1['results'][i]['active_ingredient'][0])
+                if "openfda" in drugs_1["results"][i]:
+                    list.append(drugs_1['results'][i]['openfda']["brand_name"][0])
+            with open("drug.html", "w") as f:
+                f.write(intro)
+                for element in list:
+                    element_1 = "<li>" + element + "</li>" + "\n"
+                    f.write(element_1)
+                f.write(end)
+            with open("drug.html", "r") as f:
+                file = f.read()
+
+            self.wfile.write(bytes(file, "utf8"))
+
+        elif "listCompanies" in self.path:
+            list = []
+            headers = {'User-Agent': 'http-client'}
+            conn = http.client.HTTPSConnection("api.fda.gov")
+            drug = self.path.split("?")[1]
+            print(drug)
+            url = "/drug/label.json?" + drug
+            conn.request("GET", url, None, headers)
+            r1 = conn.getresponse()
+            drugs_raw = r1.read().decode("utf-8")
+            conn.close()
+            drug = json.loads(drugs_raw)
+            drugs_1 = drug
+
+            for i in range(len(drugs_1['results'])):
+                if "openfda" in drugs_1["results"][i]:
+                    list.append(drugs_1['results'][i]['openfda']["manufacturer_name"][0])
+                else:
+                    list.append("Unknow")
+
+            with open("drug.html", "w") as f:
+                f.write(intro)
+                for element in list:
+                    element_1 = "<li>" + element + "</li>" + "\n"
+                    f.write(element_1)
+                f.write(end)
+            with open("drug.html", "r") as f:
+                file = f.read()
+
+            self.wfile.write(bytes(file, "utf8"))
+
+
+
+
 
         return
 
