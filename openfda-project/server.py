@@ -2,12 +2,24 @@ import http.server
 import socketserver
 import json
 import http.client
-import socket
 
 # -- IP and the port of the server
 IP = "localhost"  # Localhost means "I": your local machine
 PORT = 8000
 socketserver.TCPServer.allow_reuse_adress = True
+
+class OpenFDAHTML():
+    def __init__(self):
+
+        intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "<body>" + "\n" "<ul>" + "\n"
+        end = "</ul>" + "\n" + "</body>" + "\n" + "</html>"
+
+        with open("drug.html", "w") as f:
+            f.write(intro)
+            for element in list:
+                element_1 = "<li>" + element + "</li>" + "\n"
+                f.write(element_1)
+            f.write(end)
 
 
 # HTTPRequestHandler class
@@ -18,6 +30,8 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
         intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "<body>" + "\n" "<ul>" + "\n"
         end = "</ul>" + "\n" + "</body>" + "\n" + "</html>"
+
+
 
         try:
             if self.path == "/":
