@@ -38,7 +38,6 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 params = self.path.split("?")[1]
                 drug = params.split("&")[0].split("=")[1]
                 limit = params.split("&")[1].split("=")[1]
-                print(drug)
                 url = "/drug/label.json?search=active_ingredient:" + drug + "&" + "limit=" + limit
                 conn.request("GET", url, None, headers)
                 r1 = conn.getresponse()
@@ -102,9 +101,10 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 list=[]
                 headers = {'User-Agent': 'http-client'}
                 conn = http.client.HTTPSConnection("api.fda.gov")
-                drug = self.path.split("?")[1]
-                print(drug)
-                url = "/drug/label.json?" + drug
+                params = self.path.split("?")[1]
+                drug = params.split("&")[0].split("=")[1]
+                limit = params.split("&")[1].split("=")[1]
+                url = "/drug/label.json?" + drug + "&" + "limit=" + limit
                 conn.request("GET", url, None, headers)
                 r1 = conn.getresponse()
                 drugs_raw = r1.read().decode("utf-8")
@@ -134,7 +134,6 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 headers = {'User-Agent': 'http-client'}
                 conn = http.client.HTTPSConnection("api.fda.gov")
                 drug = self.path.split("?")[1]
-                print(drug)
                 url = "/drug/label.json?" + drug
                 conn.request("GET", url, None, headers)
                 r1 = conn.getresponse()
@@ -167,7 +166,6 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 headers = {'User-Agent': 'http-client'}
                 conn = http.client.HTTPSConnection("api.fda.gov")
                 drug = self.path.split("?")[1]
-                print(drug)
                 url = "/drug/label.json?" + drug
                 conn.request("GET", url, None, headers)
                 r1 = conn.getresponse()
@@ -193,12 +191,12 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
             elif "secret" in self.path:
                 self.send_response(401)
-                self.send_header('Unauthorized', 'WWW-Authenticate de basic Realm')
+                self.send_header("WWW-Authenthicate","Basic realm='OpenFDA Private Zone")
                 self.end_headers()
 
             elif "redirect" in self.path:
                 self.send_response(302)
-                self.send_header('Redirect', 'http://redirect/')
+                self.send_header('Location', 'http://localhost:8000/')
                 self.end_headers()
 
 
