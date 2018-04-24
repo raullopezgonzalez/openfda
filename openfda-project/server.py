@@ -102,9 +102,9 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 headers = {'User-Agent': 'http-client'}
                 conn = http.client.HTTPSConnection("api.fda.gov")
                 params = self.path.split("?")[1]
-                drug = params.split("&")[0].split("=")[1]
+
                 limit = params.split("&")[1].split("=")[1]
-                url = "/drug/label.json?" + drug + "&" + "limit=" + limit
+                url = "/drug/label.json?" + "limit=" + limit
                 conn.request("GET", url, None, headers)
                 r1 = conn.getresponse()
                 drugs_raw = r1.read().decode("utf-8")
@@ -191,7 +191,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
             elif "secret" in self.path:
                 self.send_response(401)
-                self.send_header("WWW-Authenthicate","Basic realm='OpenFDA Private Zone")
+                self.send_header("WWW-Authenticate","Basic realm='OpenFDA Private Zone")
                 self.end_headers()
 
             elif "redirect" in self.path:
