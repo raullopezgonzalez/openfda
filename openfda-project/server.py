@@ -102,8 +102,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 headers = {'User-Agent': 'http-client'}
                 conn = http.client.HTTPSConnection("api.fda.gov")
                 params = self.path.split("?")[1]
-
-                limit = params.split("&")[1].split("=")[1]
+                limit = params.split("=")[1]
                 url = "/drug/label.json?" + "limit=" + limit
                 conn.request("GET", url, None, headers)
                 r1 = conn.getresponse()
@@ -113,8 +112,12 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 drugs_1 = drug
 
                 for i in range(len(drugs_1['results'])):
-                    if "openfda" in drugs_1["results"][i]:
-                        list.append(drugs_1['results'][i]['openfda']["brand_name"][0])
+                    try:
+                        if "openfda" in drugs_1["results"][i]:
+                            list.append(drugs_1['results'][i]['openfda']["brand_name"][0])
+                    except KeyError:
+                        list.append("Unknow")
+
                 with open("drug.html", "w") as f:
                     f.write(intro)
                     for element in list:
