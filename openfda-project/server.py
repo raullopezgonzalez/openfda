@@ -9,7 +9,7 @@ PORT = 8000
 socketserver.TCPServer.allow_reuse_address = True
 
 class OpenFDAHTML():
-    def html_visual(self,list_1):
+    def html_visual(self, list_1):
 
         intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "<body>" + "\n" "<ul>" + "\n"
         end = "</ul>" + "\n" + "</body>" + "\n" + "</html>"
@@ -29,6 +29,11 @@ class OpenFDAClient():
         conn = http.client.HTTPSConnection("api.fda.gov")
         url = "/drug/label.json?search=active_ingredient:" + drug + "&" + "limit=" + limit
         conn.request("GET", url, None, headers)
+        r1 = conn.getresponse()
+        r1 = r1.read().decode("utf-8") # aquiiiiiiiiiiiiiiiiiiii
+        conn.close()
+
+
 
     def communicate_company(self,drug,limit):
         headers = {'User-Agent': 'http-client'}
@@ -47,19 +52,20 @@ Client = OpenFDAClient()
 
 
 class OpenFDAParser():
-    def extract_data_sdrugs(self,drugs_1,list_1):
+    def extract_data_sdrugs(self, drugs_1, list_1):
         for i in range(len(drugs_1['results'])):
             if 'active_ingredient' in drugs_1['results'][i]:
                 list_1.append(drugs_1['results'][i]['active_ingredient'][0])
             else:
-                list_1.append("This index has no drug")
+                list_1.append("Unknown")
 
     def extract_data_scompany(self,companies_1,list_1):
         for i in range(len(companies_1['results'])):
-            if 'active_ingredient' in companies_1['results'][i]:
-                list_1.append(companies_1['results'][i]['openfda']["manufacturer_name"][0])
-            else:
-                list_1.append("This index has no manufacturer name")
+            try:
+                if "openfda" in companies_1['results'][i]:
+                    list_1.append(companies_1['results'][i]['openfda']["manufacturer_name"][0])
+            except KeyError:
+                list_1.append("Unknown")
 
     def extract_data_ldrugs(self,drugs_1,list_1):
         for i in range(len(drugs_1['results'])):
@@ -71,15 +77,18 @@ class OpenFDAParser():
 
     def extract_data_lcompanies(self,drugs_1,list_1):
         for i in range(len(drugs_1['results'])):
-            if "openfda" in drugs_1["results"][i]:
-                list_1.append(drugs_1['results'][i]['openfda']["manufacturer_name"][0])
-            else:
+            try:
+                if "openfda" in drugs_1['results'][i]:
+                    list_1.append(drugs_1['results'][i]['openfda']["manufacturer_name"][0])
+            except KeyError:
                 list_1.append("Unknown")
 
     def extract_data_warnings(self,drugs_1,list_1):
         for i in range(len(drugs_1['results'])):
-            if "openfda" in drugs_1["results"][i]:
+            if "warnings" in drugs_1["results"][i]:
                 list_1.append(drugs_1['results'][i]['warnings'][0])
+            else:
+                list_1.append("Unknown")
 
 Parser = OpenFDAParser()
 
@@ -92,12 +101,6 @@ Parser = OpenFDAParser()
 class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     # GET
     def do_GET(self):
-
-
-        intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "<body>" + "\n" + "<ul>" + "\n"
-        end = "</ul>" + "\n" + "</body>" + "\n" + "</html>"
-
-
 
         try:
             if self.path == "/":
@@ -112,31 +115,25 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
+
                 list_1=[]
-                headers = {'User-Agent': 'http-client'}
-                conn = http.client.HTTPSConnection("api.fda.gov")
                 params = self.path.split("?")[1]
                 drug = params.split("&")[0].split("=")[1]
                 limit = params.split("&")[1].split("=")[1]
-                url = "/drug/label.json?search=active_ingredient:" + drug + "&" + "limit=" + limit
-                conn.request("GET", url, None, headers)
+
+                Client.communicate_active(drug, limit)
+
+                #aquiiiiiiiiiiiiiiiiiii
                 r1 = conn.getresponse()
                 drugs_raw = r1.read().decode("utf-8")
                 conn.close()
                 drug = json.loads(drugs_raw)
                 drugs_1 = drug
 
-                for i in range(len(drugs_1['results'])):
-                    if 'active_ingredient' in drugs_1['results'][i]:
-                        list_1.append(drugs_1['results'][i]['active_ingredient'][0])
-                    else:
-                        list_1.append("This index has no drug")
-                with open("drug.html", "w") as f:
-                    f.write(intro)
-                    for element in list_1:
-                        element_1 = "<li>" + element + "</li>" + "\n"
-                        f.write(element_1)
-                    f.write(end)
+                Parser.extract_data_sdrugs(drugs_1, list_1)
+
+                HTML.html_visual(list_1)
+
                 with open("drug.html", "r") as f:
                     file = f.read()
 
