@@ -21,6 +21,8 @@ class OpenFDAHTML():
                 f.write(element_1)
             f.write(end)
 
+HTML = OpenFDAHTML()
+
 class OpenFDAClient():
     def communicate_active(self,drug,limit):
         headers = {'User-Agent': 'http-client'}
@@ -40,7 +42,7 @@ class OpenFDAClient():
         url = "/drug/label.json?" + "limit=" + limit
         conn.request("GET", url, None, headers)
 
-
+Client = OpenFDAClient()
 
 
 
@@ -78,6 +80,8 @@ class OpenFDAParser():
         for i in range(len(drugs_1['results'])):
             if "openfda" in drugs_1["results"][i]:
                 list_1.append(drugs_1['results'][i]['warnings'][0])
+
+Parser = OpenFDAParser()
 
 
 
