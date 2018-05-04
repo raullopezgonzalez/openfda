@@ -42,14 +42,14 @@ class OpenFDAClient():
     def communicate_company(self,drug,limit):
         headers = {'User-Agent': 'http-client'}
         conn = http.client.HTTPSConnection("api.fda.gov")
-        url = "/drug/label.json?search=manufacturer_name:" + drug + "&" + "limit=" + limit
-        conn.request("GET", url, None, headers)
+        url_1 = "/drug/label.json?search=manufacturer_name:" + drug + "&" + "limit=" + limit
+        conn.request("GET", url_1, None, headers)
         r1 = conn.getresponse()
         drugs_raw = r1.read().decode("utf-8")
         conn.close()
         drug = json.loads(drugs_raw)
-        companies_1 = drug
-        return companies_1
+        drugs_1 = drug
+        return drugs_1
 
     def communicate_list(self,limit):
         headers = {'User-Agent': 'http-client'}
@@ -75,11 +75,11 @@ class OpenFDAParser():
             else:
                 list_1.append("Unknown")
 
-    def extract_data_scompany(self,companies_1,list_1):
-        for i in range(len(companies_1['results'])):
+    def extract_data_scompany(self,drugs_1,list_1):
+        for i in range(len(drugs_1['results'])):
             try:
-                if "openfda" in companies_1['results'][i]:
-                    list_1.append(companies_1['results'][i]['openfda']["manufacturer_name"][0])
+                if "openfda" in drugs_1['results'][i]:
+                    list_1.append(drugs_1['results'][i]['openfda']["manufacturer_name"][0])
             except KeyError:
                 list_1.append("Unknown")
 
@@ -169,22 +169,25 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 list_1=[]
 
                 if "&" not in self.path:
-                    limit = 10
+                    limit = "10"
                     params = self.path.split("?")[1]
                     drug = params.split("&")[0].split("=")[1]
 
-                    alpha = Client.communicate_active(drug, limit)
+                    beta = Client.communicate_company(drug, limit)
 
-                    Parser.extract_data_sdrugs(alpha, list_1)
+                    Parser.extract_data_scompany(beta, list_1)
 
                 elif "&" in self.path:
                     params = self.path.split("?")[1]
                     drug = params.split("&")[0].split("=")[1]
                     limit = params.split("&")[1].split("=")[1]
 
-                    alpha = Client.communicate_active(drug, limit)
+                    if not limit:
+                        limit = "10"
 
-                    Parser.extract_data_sdrugs(alpha, list_1)
+                    omega = Client.communicate_company(drug, limit)
+
+                    Parser.extract_data_scompany(omega, list_1)
 
                 HTML.html_visual(list_1)
 
@@ -202,9 +205,9 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
 
-                alpha = Client.communicate_list(limit)
+                landa = Client.communicate_list(limit)
 
-                Parser.extract_data_ldrugs(alpha, list_1)
+                Parser.extract_data_ldrugs(landa, list_1)
 
                 HTML.html_visual(list_1)
 
@@ -222,9 +225,9 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
 
-                alpha = Client.communicate_list(limit)
+                phi = Client.communicate_list(limit)
 
-                Parser.extract_data_lcompanies(alpha, list_1)
+                Parser.extract_data_lcompanies(phi, list_1)
 
                 HTML.html_visual(list_1)
 
@@ -242,9 +245,9 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
 
-                alpha = Client.communicate_list(limit)
+                pi = Client.communicate_list(limit)
 
-                Parser.extract_data_warnings(alpha, list_1)
+                Parser.extract_data_warnings(pi, list_1)
 
                 HTML.html_visual(list_1)
 
