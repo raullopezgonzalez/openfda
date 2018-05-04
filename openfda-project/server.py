@@ -30,8 +30,12 @@ class OpenFDAClient():
         url = "/drug/label.json?search=active_ingredient:" + drug + "&" + "limit=" + limit
         conn.request("GET", url, None, headers)
         r1 = conn.getresponse()
-        r1 = r1.read().decode("utf-8") # aquiiiiiiiiiiiiiiiiiiii
+        drugs_raw = r1.read().decode("utf-8")
         conn.close()
+        drug = json.loads(drugs_raw)
+        drugs_1 = drug
+        return drugs_1
+
 
 
 
@@ -40,12 +44,24 @@ class OpenFDAClient():
         conn = http.client.HTTPSConnection("api.fda.gov")
         url = "/drug/label.json?search=manufacturer_name:" + drug + "&" + "limit=" + limit
         conn.request("GET", url, None, headers)
+        r1 = conn.getresponse()
+        drugs_raw = r1.read().decode("utf-8")
+        conn.close()
+        drug = json.loads(drugs_raw)
+        companies_1 = drug
+        return companies_1
 
     def communicate_list(self,limit):
         headers = {'User-Agent': 'http-client'}
         conn = http.client.HTTPSConnection("api.fda.gov")
         url = "/drug/label.json?" + "limit=" + limit
         conn.request("GET", url, None, headers)
+        r1 = conn.getresponse()
+        drugs_raw = r1.read().decode("utf-8")
+        conn.close()
+        drug = json.loads(drugs_raw)
+        drugs_1 = drug
+        return drugs_1
 
 Client = OpenFDAClient()
 
@@ -117,20 +133,26 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
 
                 list_1=[]
-                params = self.path.split("?")[1]
-                drug = params.split("&")[0].split("=")[1]
-                limit = params.split("&")[1].split("=")[1]
 
-                Client.communicate_active(drug, limit)
+                if "&" not in self.path:
+                    limit = "10"
+                    params = self.path.split("?")[1]
+                    drug = params.split("&")[0].split("=")[1]
 
-                #aquiiiiiiiiiiiiiiiiiii
-                r1 = conn.getresponse()
-                drugs_raw = r1.read().decode("utf-8")
-                conn.close()
-                drug = json.loads(drugs_raw)
-                drugs_1 = drug
+                    alpha = Client.communicate_active(drug, limit)
 
-                Parser.extract_data_sdrugs(drugs_1, list_1)
+                    Parser.extract_data_sdrugs(alpha, list_1)
+
+                elif "&" in self.path:
+                    params = self.path.split("?")[1]
+                    drug = params.split("&")[0].split("=")[1]
+                    limit = params.split("&")[1].split("=")[1]
+                    if not limit:
+                        limit = "10"
+
+                    alpha = Client.communicate_active(drug, limit)
+
+                    Parser.extract_data_sdrugs(alpha, list_1)
 
                 HTML.html_visual(list_1)
 
@@ -143,29 +165,29 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                list_1=[]
-                headers = {'User-Agent': 'http-client'}
-                conn = http.client.HTTPSConnection("api.fda.gov")
-                companies = self.path.split("?")[1]
-                url = "/drug/label.json?search=manufacturer_name:" + companies
-                conn.request("GET", url, None, headers)
-                r1 = conn.getresponse()
-                company_raw = r1.read().decode("utf-8")
-                conn.close()
-                companies = json.loads(company_raw)
-                companies_1 = companies
 
-                for i in range(len(companies_1['results'])):
-                    if 'active_ingredient' in companies_1['results'][i]:
-                        list_1.append(companies_1['results'][i]['openfda']["manufacturer_name"][0])
-                    else:
-                        list_1.append("This index has no manufacturer name")
-                with open("drug.html", "w") as f:
-                    f.write(intro)
-                    for element in list_1:
-                        element_1 = "<li>" + element + "</li>" + "\n"
-                        f.write(element_1)
-                    f.write(end)
+                list_1=[]
+
+                if "&" not in self.path:
+                    limit = 10
+                    params = self.path.split("?")[1]
+                    drug = params.split("&")[0].split("=")[1]
+
+                    alpha = Client.communicate_active(drug, limit)
+
+                    Parser.extract_data_sdrugs(alpha, list_1)
+
+                elif "&" in self.path:
+                    params = self.path.split("?")[1]
+                    drug = params.split("&")[0].split("=")[1]
+                    limit = params.split("&")[1].split("=")[1]
+
+                    alpha = Client.communicate_active(drug, limit)
+
+                    Parser.extract_data_sdrugs(alpha, list_1)
+
+                HTML.html_visual(list_1)
+
                 with open("drug.html", "r") as f:
                     file = f.read()
 
@@ -175,32 +197,17 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
+
                 list_1=[]
-                headers = {'User-Agent': 'http-client'}
-                conn = http.client.HTTPSConnection("api.fda.gov")
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
-                url = "/drug/label.json?" + "limit=" + limit
-                conn.request("GET", url, None, headers)
-                r1 = conn.getresponse()
-                drugs_raw = r1.read().decode("utf-8")
-                conn.close()
-                drug = json.loads(drugs_raw)
-                drugs_1 = drug
 
-                for i in range(len(drugs_1['results'])):
-                    try:
-                        if "openfda" in drugs_1["results"][i]:
-                            list_1.append(drugs_1['results'][i]['openfda']["brand_name"][0])
-                    except KeyError:
-                        list_1.append("Unknown")
+                alpha = Client.communicate_list(limit)
 
-                with open("drug.html", "w") as f:
-                    f.write(intro)
-                    for element in list_1:
-                        element_1 = "<li>" + element + "</li>" + "\n"
-                        f.write(element_1)
-                    f.write(end)
+                Parser.extract_data_ldrugs(alpha, list_1)
+
+                HTML.html_visual(list_1)
+
                 with open("drug.html", "r") as f:
                     file = f.read()
 
@@ -210,60 +217,38 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
+
                 list_1 = []
-                headers = {'User-Agent': 'http-client'}
-                conn = http.client.HTTPSConnection("api.fda.gov")
-                drug = self.path.split("?")[1]
-                url = "/drug/label.json?" + drug
-                conn.request("GET", url, None, headers)
-                r1 = conn.getresponse()
-                drugs_raw = r1.read().decode("utf-8")
-                conn.close()
-                drug = json.loads(drugs_raw)
-                drugs_1 = drug
+                params = self.path.split("?")[1]
+                limit = params.split("=")[1]
 
-                for i in range(len(drugs_1['results'])):
-                    if "openfda" in drugs_1["results"][i]:
-                        list_1.append(drugs_1['results'][i]['openfda']["manufacturer_name"][0])
-                    else:
-                        list_1.append("Unknown")
+                alpha = Client.communicate_list(limit)
 
-                with open("drug.html", "w") as f:
-                    f.write(intro)
-                    for element in list_1:
-                        element_1 = "<li>" + element + "</li>" + "\n"
-                        f.write(element_1)
-                    f.write(end)
+                Parser.extract_data_lcompanies(alpha, list_1)
+
+                HTML.html_visual(list_1)
+
                 with open("drug.html", "r") as f:
                     file = f.read()
 
                 self.wfile.write(bytes(file, "utf8"))
+
             elif "listWarnings" in self.path:
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
+
                 list_1 = []
-                headers = {'User-Agent': 'http-client'}
-                conn = http.client.HTTPSConnection("api.fda.gov")
-                drug = self.path.split("?")[1]
-                url = "/drug/label.json?" + drug
-                conn.request("GET", url, None, headers)
-                r1 = conn.getresponse()
-                drugs_raw = r1.read().decode("utf-8")
-                conn.close()
-                drug = json.loads(drugs_raw)
-                drugs_1 = drug
+                params = self.path.split("?")[1]
+                limit = params.split("=")[1]
 
-                for i in range(len(drugs_1['results'])):
-                    if "openfda" in drugs_1["results"][i]:
-                        list_1.append(drugs_1['results'][i]['warnings'][0])
+                alpha = Client.communicate_list(limit)
 
-                with open("drug.html", "w") as f:
-                    f.write(intro)
-                    for element in list_1:
-                        element_1 = "<li>" + element + "</li>" + "\n"
-                        f.write(element_1)
-                    f.write(end)
+                Parser.extract_data_warnings(alpha, list_1)
+
+                HTML.html_visual(list_1)
+
+
                 with open("drug.html", "r") as f:
                     file = f.read()
 
@@ -278,6 +263,14 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(302)
                 self.send_header('Location', 'http://localhost:8000/')
                 self.end_headers()
+
+            else:
+                self.send_response(404)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                with open("error.html", "r") as f:
+                    file = f.read()
+                self.wfile.write(bytes(file, "utf8"))
 
 
 
