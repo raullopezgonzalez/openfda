@@ -161,7 +161,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
                 self.wfile.write(bytes(file, "utf8"))
 
-            elif "searchCompanies" in self.path:
+            elif "searchCompany" in self.path:
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
@@ -308,6 +308,6 @@ except KeyboardInterrupt:
 httpd.server_close()
 print("")
 print("Server stopped!")
+print("final")
 
 
-# https://github.com/joshmaker/simple-python-webserver/blob/master/server.py
